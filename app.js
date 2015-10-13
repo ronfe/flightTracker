@@ -44,15 +44,29 @@ app.get('/flight/:flightId', function (req, res) {
                     request.get('http://lhr.data.fr24.com/_external/planedata_json.1.4.php?f=' + flightId, function(err, response, flightData){
                         if (err) console.error(err);
                         var cFlightData = JSON.parse(flightData);
+                        console.log(cFlightData);
                         var flightPosition = cFlightData.trail.slice(0, 3);
-                        request.get('https://maps.googleapis.com/maps/api/geocode/json?latlng=' + flightPosition[0] + ',' + flightPosition[1], function(err, response, geoData){
+                        var output = {
+                            frid: cFlightData.q,
+                            flight: cFlightData.flight,
+                            aircraft: cFlightData.aircraft,
+                            schDep: cFlightData.dep_schd,
+                            schArr: cFlightData.arr_schd,
+                            actDep: cFlightData.departure,
+                            eta: cFlightData.eta,
+                            depApt: cFlightData.from_iata,
+                            depTimeZone: cFlightData.from_tz_offset,
+                            arrApt: cFlightData.to_iata,
+                            arrTimeZone: cFlightData.to_tz_offset
+                        };
+                        request.get('https://maps.googleapis.com/maps/api/geocode/json?language=zh-CN&latlng=' + flightPosition[0] + ',' + flightPosition[1], function(err, response, geoData){
                             if (err) console.error(err);
                             cGeoData = JSON.parse(geoData);
                             var geoResArray = cGeoData['results'];
                             var geoInfo = geoResArray[geoResArray.length - 3].formatted_address;
-                            var output = {
+                            output.trail = {
                                 position: geoInfo,
-                                height: flightPosition[3]
+                                height: flightPosition[2] * 10
                             };
                             res.status(200).json(output);
                         });
